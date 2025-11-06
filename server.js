@@ -24,7 +24,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://recruitment-itffsydvj-kavyas-projects-63d73005.vercel.app"
+    "https://recruitment-9hut0b93y-kavyas-projects-63d73005.vercel.app",
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true
