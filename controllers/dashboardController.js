@@ -1,17 +1,13 @@
 import Employee from "../models/Employee.js";
 import Attendance from "../models/Attendance.js";
 import Payroll from "../models/Payroll.js";
-<<<<<<< HEAD
 import Leave from "../models/Leave.js";
-=======
->>>>>>> da0db0d (backend project setup)
 
 export const getDashboardData = async (req, res) => {
   try {
     // 1️⃣ Totals
     const totalEmployees = await Employee.countDocuments();
     const activeEmployees = await Employee.countDocuments({ status: "Active" });
-<<<<<<< HEAD
     const today = new Date();
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
@@ -20,20 +16,13 @@ export const getDashboardData = async (req, res) => {
       fromDate: { $lte: endOfDay },
       toDate: { $gte: startOfDay },
     });
-=======
-    const onLeave = await Attendance.countDocuments({ date: new Date().toISOString().slice(0, 10), status: "Leave" });
->>>>>>> da0db0d (backend project setup)
     const payrollGenerated = await Payroll.countDocuments();
 
     // 2️⃣ Employee Stats (Joins per month)
     const employeeStats = await Employee.aggregate([
       {
         $group: {
-<<<<<<< HEAD
           _id: { $month: "$joining_date" },
-=======
-          _id: { $month: "$joiningDate" },
->>>>>>> da0db0d (backend project setup)
           count: { $sum: 1 },
         },
       },
@@ -74,8 +63,4 @@ export const getDashboardData = async (req, res) => {
     console.error("Error in getDashboardData:", error);
     res.status(500).json({ message: "Failed to fetch dashboard data", error: error.message });
   }
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> da0db0d (backend project setup)

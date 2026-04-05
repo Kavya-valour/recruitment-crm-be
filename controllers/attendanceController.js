@@ -1,7 +1,6 @@
 import Attendance from "../models/Attendance.js";
 import Employee from "../models/Employee.js";
 import csvParser from "csv-parser";
-<<<<<<< HEAD
 import ExcelJS from "exceljs";
 import fs from "fs";
 import path from "path";
@@ -140,10 +139,6 @@ const generateAttendanceReportData = async ({ type, year, month, week }) => {
     },
   };
 };
-=======
-import fs from "fs";
-import path from "path";
->>>>>>> da0db0d (backend project setup)
 
 // Helper to validate attendance object
 const validateAttendance = async (att) => {
@@ -173,7 +168,6 @@ const validateAttendance = async (att) => {
 // ------------------- Add manual attendance -------------------
 export const addAttendance = async (req, res) => {
   try {
-<<<<<<< HEAD
     const { date, status, inTime, outTime } = req.body;
 
     // 🔥 Get employeeId from JWT
@@ -229,26 +223,12 @@ export const addAttendance = async (req, res) => {
   } catch (err) {
     console.error("Error adding attendance:", err);
     res.status(500).json({ message: err.message });
-=======
-    const { employeeId, date, status, inTime, outTime } = req.body;
-    const errors = await validateAttendance({ employeeId, date, status, inTime, outTime });
-
-    if (errors.length > 0) return res.status(400).json({ error: errors.join(" ") });
-
-    const record = new Attendance({ employeeId, date, status, inTime, outTime });
-    const saved = await record.save();
-    res.status(201).json(saved);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to add attendance." });
->>>>>>> da0db0d (backend project setup)
   }
 };
 
 // ------------------- Get all attendance -------------------
 export const getAttendance = async (req, res) => {
   try {
-<<<<<<< HEAD
     const { employeeId, date } = req.query;
 
     const filter = {};
@@ -262,9 +242,6 @@ export const getAttendance = async (req, res) => {
     }
 
     const records = await Attendance.find(filter).populate("employeeId", "name employee_id");
-=======
-    const records = await Attendance.find().populate("employeeId", "name employee_id");
->>>>>>> da0db0d (backend project setup)
     res.json(records);
   } catch (err) {
     console.error(err);
@@ -272,7 +249,6 @@ export const getAttendance = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 // ------------------- Update attendance -------------------
 export const updateAttendance = async (req, res) => {
   try {
@@ -407,8 +383,6 @@ export const exportAttendanceReportExcel = async (req, res) => {
   }
 };
 
-=======
->>>>>>> da0db0d (backend project setup)
 // ------------------- Upload CSV -------------------
 export const uploadCsv = async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "CSV file is required." });
@@ -428,11 +402,7 @@ export const uploadCsv = async (req, res) => {
         const rowErrors = await validateAttendance({ employeeId, date, status, inTime, outTime });
 
         if (rowErrors.length > 0) {
-<<<<<<< HEAD
           errors.push(`Row for Employee ID ${employeeId}: ${rowErrors.join(" ")}`);
-=======
-          errors.push(`Row for Employee ${employeeId}: ${rowErrors.join(" ")}`);
->>>>>>> da0db0d (backend project setup)
           continue;
         }
 
@@ -441,11 +411,7 @@ export const uploadCsv = async (req, res) => {
           await attendance.save();
           created++;
         } catch (err) {
-<<<<<<< HEAD
           errors.push(`Failed to save row for Employee ID ${employeeId}.`);
-=======
-          errors.push(`Failed to save row for Employee ${employeeId}.`);
->>>>>>> da0db0d (backend project setup)
         }
       }
 
@@ -457,8 +423,4 @@ export const uploadCsv = async (req, res) => {
       }
       res.json({ created });
     });
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> da0db0d (backend project setup)

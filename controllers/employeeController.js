@@ -1,6 +1,4 @@
 import Employee from "../models/Employee.js";
-<<<<<<< HEAD
-import ExcelJS from "exceljs";
 import fs from "fs";
 import path from "path";
 import { validateEmployeeData } from "../utils/validators.js";
@@ -8,27 +6,14 @@ import { validateEmployeeData } from "../utils/validators.js";
 // Generate sequential Employee IDs (VT000101, VT000102...)
 const generateEmployeeId = async () => {
   const lastEmployee = await Employee.findOne().sort({ createdAt: -1 });
-  let nextNumber = 101; // Start from 101
-=======
-import fs from "fs";
-import path from "path";
-
-// Generate sequential Employee IDs (VT0001, VT0002...)
-const generateEmployeeId = async () => {
-  const lastEmployee = await Employee.findOne().sort({ createdAt: -1 });
   let nextNumber = 1;
->>>>>>> da0db0d (backend project setup)
 
   if (lastEmployee && lastEmployee.employee_id) {
     const numPart = parseInt(lastEmployee.employee_id.replace("VT", ""), 10);
     nextNumber = numPart + 1;
   }
 
-<<<<<<< HEAD
-  return `VT${nextNumber.toString().padStart(6, "0")}`;
-=======
   return `VT${nextNumber.toString().padStart(4, "0")}`;
->>>>>>> da0db0d (backend project setup)
 };
 
 // Get all employees
@@ -52,29 +37,7 @@ export const getEmployeeById = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-// Get employee by email or employee_id
-export const getEmployeeByLookup = async (req, res) => {
-  try {
-    const { email, employeeId } = req.query;
-
-    if (!email && !employeeId) {
-      return res.status(400).json({ message: "Email or employeeId is required" });
-    }
-
-    const query = {};
-    if (email) query.email = email.toLowerCase();
-    if (employeeId) query.employee_id = employeeId;
-
-    const employee = await Employee.findOne(query);
-    if (!employee) return res.status(404).json({ message: "Employee not found" });
-    res.json(employee);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// Add new employee with auto-generated OR manual VT000X ID
+// Add new employee with auto-generated VT000X ID
 export const addEmployee = async (req, res) => {
   try {
     // Validate input data
@@ -107,22 +70,8 @@ export const addEmployee = async (req, res) => {
 
     const employee = new Employee({
       employee_id,
-      name: req.body.name.trim(),
-      email: req.body.email.toLowerCase(),
-=======
-// Add new employee with auto-generated VT000X ID
-export const addEmployee = async (req, res) => {
-  try {
-    const existing = await Employee.findOne({ email: req.body.email });
-    if (existing) return res.status(400).json({ message: "Email already exists" });
-
-    const employee_id = await generateEmployeeId();
-
-    const employee = new Employee({
-      employee_id,
       name: req.body.name,
       email: req.body.email,
->>>>>>> da0db0d (backend project setup)
       phone: req.body.phone,
       designation: req.body.designation,
       department: req.body.department,
@@ -139,24 +88,7 @@ export const addEmployee = async (req, res) => {
     });
   } catch (err) {
     console.error("Error in addEmployee:", err);
-<<<<<<< HEAD
-    
-    // Handle MongoDB validation errors
-    if (err.name === "ValidationError") {
-      const errors = Object.values(err.errors).map(e => e.message);
-      return res.status(400).json({ message: "Validation failed", errors });
-    }
-    
-    // Handle duplicate key errors
-    if (err.code === 11000) {
-      const field = Object.keys(err.keyPattern)[0];
-      return res.status(400).json({ message: `${field} already exists` });
-    }
-    
-    res.status(500).json({ message: err.message || "Internal server error" });
-=======
     res.status(500).json({ message: err.message });
->>>>>>> da0db0d (backend project setup)
   }
 };
 
@@ -183,29 +115,6 @@ export const updateEmployee = async (req, res) => {
     });
 
     // Update education if provided
-<<<<<<< HEAD
-    if (req.body.education !== undefined) {
-      const rawEducation = req.body.education;
-      if (typeof rawEducation === "string" && rawEducation.trim() !== "") {
-        try {
-          employee.education = JSON.parse(rawEducation);
-        } catch (parseErr) {
-          return res.status(400).json({ message: "Invalid education data" });
-        }
-      }
-    }
-
-    // Update experience if provided
-    if (req.body.experience !== undefined) {
-      const rawExperience = req.body.experience;
-      if (typeof rawExperience === "string" && rawExperience.trim() !== "") {
-        try {
-          employee.experience = JSON.parse(rawExperience);
-        } catch (parseErr) {
-          return res.status(400).json({ message: "Invalid experience data" });
-        }
-      }
-=======
     if (req.body.education) {
       const eduArray = JSON.parse(req.body.education);
       employee.education = eduArray;
@@ -215,7 +124,6 @@ export const updateEmployee = async (req, res) => {
     if (req.body.experience) {
       const expArray = JSON.parse(req.body.experience);
       employee.experience = expArray;
->>>>>>> da0db0d (backend project setup)
     }
 
     await employee.save();
@@ -229,90 +137,10 @@ export const updateEmployee = async (req, res) => {
 // Delete employee
 export const deleteEmployee = async (req, res) => {
   try {
-<<<<<<< HEAD
-    const employee = await Employee.findByIdAndDelete(req.params.id);
-    if (!employee) {
-      return res.status(404).json({ message: "Employee not found" });
-    }
+    await Employee.findByIdAndDelete(req.params.id);
     res.json({ message: "Employee deleted successfully" });
   } catch (err) {
     console.error("Error deleting employee:", err);
     res.status(500).json({ message: err.message });
   }
 };
-
-// Export employees to Excel
-export const exportEmployeesToExcel = async (req, res) => {
-  try {
-    const employees = await Employee.find().select(
-      "employee_id name email phone designation department joining_date leaving_date current_ctc status"
-    );
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Employees");
-
-    // Add headers
-    worksheet.columns = [
-      { header: "Employee ID", key: "employee_id", width: 15 },
-      { header: "Name", key: "name", width: 25 },
-      { header: "Email", key: "email", width: 30 },
-      { header: "Phone", key: "phone", width: 15 },
-      { header: "Designation", key: "designation", width: 20 },
-      { header: "Department", key: "department", width: 20 },
-      { header: "Joining Date", key: "joining_date", width: 15 },
-      { header: "Leaving Date", key: "leaving_date", width: 15 },
-      { header: "Current CTC", key: "current_ctc", width: 15 },
-      { header: "Status", key: "status", width: 10 },
-    ];
-
-    // Style header row
-    worksheet.getRow(1).font = { bold: true };
-    worksheet.getRow(1).fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFE6E6FA" },
-    };
-
-    // Add data rows
-    employees.forEach((employee) => {
-      worksheet.addRow({
-        employee_id: employee.employee_id,
-        name: employee.name,
-        email: employee.email,
-        phone: employee.phone || "",
-        designation: employee.designation || "",
-        department: employee.department || "",
-        joining_date: employee.joining_date ? new Date(employee.joining_date).toLocaleDateString() : "",
-        leaving_date: employee.leaving_date ? new Date(employee.leaving_date).toLocaleDateString() : "",
-        current_ctc: employee.current_ctc || "",
-        status: employee.status,
-      });
-    });
-
-    // Set response headers
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=employees.xlsx"
-    );
-
-    // Write to response
-    await workbook.xlsx.write(res);
-    res.end();
-
-  } catch (error) {
-    console.error("Excel export error:", error);
-    res.status(500).json({ message: "Failed to export employees to Excel" });
-  }
-};
-=======
-    await Employee.findByIdAndDelete(req.params.id);
-    res.json({ message: "Employee deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
->>>>>>> da0db0d (backend project setup)

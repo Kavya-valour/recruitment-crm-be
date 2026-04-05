@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 const offerLetterSchema = new mongoose.Schema(
   {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 434a8b7 (final attendance report + offer letter)
     employeeName: { type: String, required: true },
 
     // New fields
@@ -31,6 +34,7 @@ const offerLetterSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+<<<<<<< HEAD
 
 export default mongoose.model("OfferLetter", offerLetterSchema);
 =======
@@ -41,6 +45,8 @@ export default mongoose.model("OfferLetter", offerLetterSchema);
   pdfUrl: { type: String },  // Path to stored PDF
   status: { type: String, default: "Generated" }, // Optional status
 }, { timestamps: true });
+=======
+>>>>>>> 434a8b7 (final attendance report + offer letter)
 
 export default mongoose.model("OfferLetter", offerLetterSchema);
 >>>>>>> da0db0d (backend project setup)

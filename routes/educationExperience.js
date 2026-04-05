@@ -24,6 +24,9 @@ router.put("/:id", upload.fields([
 
     // Parse JSON from formData
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 434a8b7 (final attendance report + offer letter)
     if (req.body.education !== undefined) {
       const rawEducation = req.body.education;
       if (typeof rawEducation === "string" && rawEducation.trim() !== "") {
@@ -33,6 +36,7 @@ router.put("/:id", upload.fields([
           return res.status(400).json({ message: "Invalid education data" });
         }
       }
+<<<<<<< HEAD
     }
     if (req.body.experience !== undefined) {
       const rawExperience = req.body.experience;
@@ -50,6 +54,18 @@ router.put("/:id", upload.fields([
     if (req.body.experience_details) {
       employee.experience = JSON.parse(req.body.experience);
 >>>>>>> da0db0d (backend project setup)
+=======
+    }
+    if (req.body.experience !== undefined) {
+      const rawExperience = req.body.experience;
+      if (typeof rawExperience === "string" && rawExperience.trim() !== "") {
+        try {
+          employee.experience = JSON.parse(rawExperience);
+        } catch (parseErr) {
+          return res.status(400).json({ message: "Invalid experience data" });
+        }
+      }
+>>>>>>> 434a8b7 (final attendance report + offer letter)
     }
 
     // Attach uploaded files if any

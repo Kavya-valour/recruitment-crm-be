@@ -1,5 +1,4 @@
 import Payroll from "../models/Payroll.js";
-<<<<<<< HEAD
 import Employee from "../models/Employee.js";
 import Attendance from "../models/Attendance.js";
 import Leave from "../models/Leave.js";
@@ -8,18 +7,10 @@ import { validatePayrollData } from "../utils/validators.js";
 import path from "path";
 
 // ---------------- GET all payrolls ----------------
-=======
-import pdfGenerator from "../utils/pdfGenerator.js";
-import path from "path";
-
-// @desc Get all payroll records
-// @route GET /api/payroll
->>>>>>> da0db0d (backend project setup)
 export const getPayrolls = async (req, res) => {
   try {
     const payrolls = await Payroll.find().populate(
       "employeeId",
-<<<<<<< HEAD
       "name employeeNumber designation workLocation joiningDate role"
     );
     res.json(payrolls);
@@ -136,49 +127,10 @@ export const addPayroll = async (req, res) => {
       absenceDeductions,
       totalEarnings,
       totalDeductions,
-=======
-      "name employeeId designation"
-    );
-    res.json(payrolls);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc Generate payroll for an employee
-// @route POST /api/payroll
-export const addPayroll = async (req, res) => {
-  try {
-    const { employeeId, month, year, basic, hra, allowances, bonus, deductions } = req.body;
-
-    if (!employeeId || !month || !year) {
-      return res.status(400).json({ message: "Employee ID, month, and year are required" });
-    }
-
-    const basicNum = Number(basic) || 0;
-    const hraNum = Number(hra) || 0;
-    const allowancesNum = Number(allowances) || 0;
-    const bonusNum = Number(bonus) || 0;
-    const deductionsNum = Number(deductions) || 0;
-
-    const grossSalary = basicNum + hraNum + allowancesNum + bonusNum;
-    const netSalary = grossSalary - deductionsNum;
-
-    const payroll = new Payroll({
-      employeeId,
-      month,
-      year,
-      basic: basicNum,
-      hra: hraNum,
-      allowances: allowancesNum,
-      bonus: bonusNum,
-      deductions: deductionsNum,
->>>>>>> da0db0d (backend project setup)
       grossSalary,
       netSalary,
     });
 
-<<<<<<< HEAD
     // ---- Generate PDF payslip ----
     const pdfUrl = await pdfGenerator.generatePayslip({
       employeeName: employee.name,
@@ -199,27 +151,12 @@ export const addPayroll = async (req, res) => {
       totalDeductions,
       netSalary,
       ctc: ctcNum,
-=======
-    // Generate payslip PDF
-    const pdfUrl = await pdfGenerator.generatePayslip({
-      employeeId,
-      month,
-      year,
-      basic: basicNum,
-      hra: hraNum,
-      allowances: allowancesNum,
-      bonus: bonusNum,
-      deductions: deductionsNum,
-      grossSalary,
-      netSalary,
->>>>>>> da0db0d (backend project setup)
     });
 
     payroll.payslipUrl = pdfUrl;
 
     const savedPayroll = await payroll.save();
     res.status(201).json(savedPayroll);
-<<<<<<< HEAD
 
   } catch (error) {
     console.error("Error adding payroll:", error);
@@ -236,25 +173,10 @@ export const updatePayrollStatus = async (req, res) => {
     }
 
     const payroll = await Payroll.findByIdAndUpdate(
-=======
-  } catch (error) {
-    console.error("Error in addPayroll:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc Update payroll status (Paid / Generated)
-// @route PUT /api/payroll/:id
-export const updatePayrollStatus = async (req, res) => {
-  try {
-    const { status } = req.body;
-    const updated = await Payroll.findByIdAndUpdate(
->>>>>>> da0db0d (backend project setup)
       req.params.id,
       { status },
       { new: true }
     );
-<<<<<<< HEAD
 
     if (!payroll) return res.status(404).json({ message: "Payroll not found" });
 
@@ -290,44 +212,10 @@ export const generatePayslipPDF = async (req, res) => {
       employeeId: payroll.formattedEmployeeId,
       joiningDate: payroll.employeeId.joiningDate,
       workLocation: payroll.employeeId.workLocation,
-=======
-    res.json(updated);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc Delete payroll record
-// @route DELETE /api/payroll/:id
-export const deletePayroll = async (req, res) => {
-  try {
-    await Payroll.findByIdAndDelete(req.params.id);
-    res.json({ message: "Payroll record deleted" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// @desc Generate and download payslip PDF manually
-// @route GET /api/payroll/:id/payslip
-export const generatePayslipPDF = async (req, res) => {
-  try {
-    const payroll = await Payroll.findById(req.params.id).populate("employeeId");
-    if (!payroll) {
-      return res.status(404).json({ message: "Payroll not found" });
-    }
-
-    // Pass all employee and payroll details to pdfGenerator
-    const pdfPath = await pdfGenerator.generatePayslip({
-      employeeId: payroll.employeeId._id,
-      employeeName: payroll.employeeId.name,
-      designation: payroll.employeeId.designation,
->>>>>>> da0db0d (backend project setup)
       month: payroll.month,
       year: payroll.year,
       basic: payroll.basic,
       hra: payroll.hra,
-<<<<<<< HEAD
       da: payroll.da,
       specialAllowance: payroll.specialAllowance,
       employerPF: payroll.employerPF,
@@ -348,23 +236,3 @@ export const generatePayslipPDF = async (req, res) => {
     res.status(500).json({ message: "Failed to generate payslip PDF" });
   }
 };
-=======
-      allowances: payroll.allowances,
-      bonus: payroll.bonus,
-      deductions: payroll.deductions,
-      grossSalary: payroll.grossSalary,
-      netSalary: payroll.netSalary,
-    });
-
-    if (!pdfPath) {
-      return res.status(500).json({ message: "PDF generation failed" });
-    }
-
-    const fullPath = path.resolve(`.${pdfPath}`);
-    res.download(fullPath);
-  } catch (error) {
-    console.error("Payslip PDF generation error:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
->>>>>>> da0db0d (backend project setup)

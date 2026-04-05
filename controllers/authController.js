@@ -1,17 +1,13 @@
 import User from "../models/User.js";
-<<<<<<< HEAD
 import Employee from "../models/Employee.js";
-=======
->>>>>>> da0db0d (backend project setup)
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
 // ✅ Register new user
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, employeeId } = req.body;
 
-<<<<<<< HEAD
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
       return res.status(400).json({ message: "User already exists" });
@@ -35,13 +31,6 @@ export const register = async (req, res) => {
       employeeId: employee.employee_id,
     });
 
-=======
-    const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ message: "User already exists" });
-
-    const hashed = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashed, role });
->>>>>>> da0db0d (backend project setup)
     await user.save();
 
     res.status(201).json({ message: "User created successfully" });
@@ -62,32 +51,23 @@ export const login = async (req, res) => {
     if (!valid) return res.status(400).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
-<<<<<<< HEAD
       { 
         id: user._id, 
         role: user.role,
         employeeId: user.employeeId  
       },
-=======
-      { id: user._id, role: user.role },
->>>>>>> da0db0d (backend project setup)
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
     res.json({
       token,
-<<<<<<< HEAD
       user: { id: user._id, name: user.name, email: user.email, role: user.role, employeeId: user.employeeId },
-=======
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
->>>>>>> da0db0d (backend project setup)
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
-<<<<<<< HEAD
 
 // ✅ Admin resets user password
 export const resetUserPassword = async (req, res) => {
@@ -135,5 +115,3 @@ export const resetUserPassword = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-=======
->>>>>>> da0db0d (backend project setup)

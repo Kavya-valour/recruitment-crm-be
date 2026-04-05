@@ -1,10 +1,15 @@
 import express from "express";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import Leave from "../models/Leave.js";
 import { getLeaves, applyLeave, updateLeave, deleteLeave, getLeaveCalendar } from "../controllers/leaveController.js";
 =======
 import { getLeaves, applyLeave, updateLeave, deleteLeave } from "../controllers/leaveController.js";
 >>>>>>> da0db0d (backend project setup)
+=======
+import Leave from "../models/Leave.js";
+import { getLeaves, applyLeave, updateLeave, deleteLeave, getLeaveCalendar } from "../controllers/leaveController.js";
+>>>>>>> 434a8b7 (final attendance report + offer letter)
 
 const router = express.Router();
 
@@ -15,11 +20,17 @@ router.put("/:id", updateLeave);
 router.delete("/:id", deleteLeave);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Leave calendar route
 router.get("/calendar/data", getLeaveCalendar);
 
 =======
 >>>>>>> da0db0d (backend project setup)
+=======
+// Leave calendar route
+router.get("/calendar/data", getLeaveCalendar);
+
+>>>>>>> 434a8b7 (final attendance report + offer letter)
 // ✅ Add this new route
 router.get("/:id", async (req, res) => {
   try {

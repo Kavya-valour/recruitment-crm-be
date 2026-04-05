@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 434a8b7 (final attendance report + offer letter)
 const leaveSchema = new mongoose.Schema(
   {
     employeeId: {
@@ -29,6 +32,7 @@ const leaveSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+<<<<<<< HEAD
 
 export default mongoose.model("Leave", leaveSchema);
 =======
@@ -41,6 +45,8 @@ const leaveSchema = new mongoose.Schema({
   reason: { type: String },
   appliedOn: { type: Date, default: Date.now },
 }, { timestamps: true });
+=======
+>>>>>>> 434a8b7 (final attendance report + offer letter)
 
 export default mongoose.model("Leave", leaveSchema);
 >>>>>>> da0db0d (backend project setup)
