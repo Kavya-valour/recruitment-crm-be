@@ -1,7 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import bodyParser from "body-parser";
 import connectDB from "./config/db.js";
 import path from "path";
 
@@ -21,19 +20,29 @@ connectDB();
 const app = express();
 
 // ✅ Updated CORS
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5000",
+  "https://recruitment-crm-lyart.vercel.app",
+  process.env.FRONTEND_URL, // Add production frontend URL via env var
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://recruitment-crm.vercel.app",
-  ],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true
 }));
 
-app.use(bodyParser.json());
+app.use(express.json());
 
 // ✅ Serve uploaded files correctly (important for Render)
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Routes
 app.use("/api/employees", employeeRoutes);

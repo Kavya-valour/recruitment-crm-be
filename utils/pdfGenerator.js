@@ -1,131 +1,162 @@
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+import puppeteer from "puppeteer";
 
-const uploadDir = path.join(process.cwd(), "uploads");
+import { generateOfferHTML } from "./offerTemplate.js";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+const logoPath = path.join(process.cwd(), "logo.png");
+
+const logoBase64 = fs.existsSync(logoPath)
+  ? fs.readFileSync(logoPath, { encoding: "base64" })
+  : null;
+
+// Ensure directory exists
 const ensureDir = (dir) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 };
 
-// Draw a key-value pair neatly
+const uploadDir = path.join(process.cwd(), "uploads");
+
+//---------------- DRAW KEY/VALUE HELPER ----------------
 const drawRow = (doc, y, label, value) => {
   doc.font("Helvetica-Bold").text(label, 60, y);
   doc.font("Helvetica").text(value, 250, y);
 };
 
-// Draw a line separator
-const drawLine = (doc, y) => {
-  doc.moveTo(50, y).lineTo(550, y).stroke();
-};
-
 // ------------------- PAYSLIP GENERATOR -------------------
-const generatePayslip = async (data) => {
+export const generatePayslip = async (data) => {
   try {
+    // Convert values safely
+    data.basic = Number(data.basic || 0);
+    data.hra = Number(data.hra || 0);
+    data.da = Number(data.da || 0);
+    data.specialAllowance = Number(data.specialAllowance || 0);
+    data.tds = Number(data.tds || 0);
+
     const payslipDir = path.join(uploadDir, "payslips");
     ensureDir(payslipDir);
 
-    const fileName = `${data.employeeId}_${data.month}_${data.year}.pdf`;
+    const safeEmployeeId = data.employeeId.replace(/\//g, "-");
+    const fileName = `${safeEmployeeId}_${data.month}_${data.year}.pdf`;
     const filePath = path.join(payslipDir, fileName);
 
     const doc = new PDFDocument({ margin: 50 });
     doc.pipe(fs.createWriteStream(filePath));
 
-    // ---- Header ----
-    doc
-      .fontSize(20)
-      .fillColor("#2c3e50")
-      .text("Valour Technologies Pvt. Ltd.", { align: "center" });
-    doc.moveDown(0.2);
-    doc
-      .fontSize(14)
-      .fillColor("#34495e")
-      .text("PAYSLIP", { align: "center", underline: true });
+    // Logo
+    const logoPath = path.join(process.cwd(), "public/images/logo.png");
+    if (fs.existsSync(logoPath)) doc.image(logoPath, 50, 45, { width: 70 });
+
+    // Header
+    doc.fontSize(18).fillColor("#2c3e50").text("Valour Technologies Pvt Ltd", 150, 50);
+    doc.fontSize(10).fillColor("#555").text(
+      "No. 502, Vcollab, Capital Park, Image Gardens Road, Madhapur, Hyderabad, Telangana - 500081",
+      150,
+      75
+    );
+    doc.moveDown(2);
+    doc.fontSize(14).fillColor("#000").text(`Salary Slip - ${data.month} ${data.year}`, { align: "center" });
     doc.moveDown(1);
 
-    // ---- Employee Details ----
-    doc.fontSize(11).fillColor("black");
-    let y = doc.y;
-
+    // Employee Details Table (2 column)
     const details = [
-      ["Employee Name:", data.employeeName || "N/A"],
-      ["Employee ID:", data.employeeId],
-      ["Designation:", data.designation || "Employee"],
-      ["Month:", data.month],
-      ["Year:", data.year],
+      ["Employee Name", data.employeeName],
+      ["Designation", data.designation],
+      ["Employee ID", data.employeeId],
+      ["Joining Date", new Date(data.joiningDate).toLocaleDateString("en-GB")],
+      ["Work Location", data.workLocation || "Remote / Office"],
     ];
 
-    details.forEach(([label, value], idx) => {
-      drawRow(doc, y + idx * 16, label, value);
+    let tableTop = doc.y;
+    let rowHeight = 22;
+    let col1 = 60, col2 = 250, colWidth = 300;
+
+    details.forEach((row) => {
+      doc.rect(col1, tableTop, colWidth, rowHeight).stroke();
+      doc.rect(col2, tableTop, colWidth, rowHeight).stroke();
+      doc.fontSize(11).fillColor("#000").text(row[0], col1 + 5, tableTop + 5);
+      doc.text(row[1], col2 + 5, tableTop + 5);
+      tableTop += rowHeight;
     });
 
-    y += details.length * 16 + 10;
-    drawLine(doc, y);
-    y += 15;
+    doc.moveDown(3);
 
-    // ---- Earnings & Deductions ----
-    doc.fontSize(12).fillColor("#2c3e50").text("Earnings & Deductions", 60, y, {
-      underline: true,
-    });
-    y += 20;
+    // Earnings / Deductions
+    const employerPf = Math.round(data.basic * 0.12);
 
     const earnings = [
-      ["Basic Salary:", `₹${data.basic}`],
-      ["HRA:", `₹${data.hra}`],
-      ["Allowances:", `₹${data.allowances}`],
-      ["Bonus:", `₹${data.bonus}`],
-      ["Deductions:", `₹${data.deductions}`],
+      ["Basic Salary", data.basic],
+      ["HRA", data.hra],
+      ["Dearness Allowance", data.da],
+      ["Special Allowance", data.specialAllowance],
     ];
 
-    earnings.forEach(([label, value], idx) => {
-      drawRow(doc, y + idx * 16, label, value);
-    });
-
-    y += earnings.length * 16 + 10;
-    drawLine(doc, y);
-    y += 15;
-
-    // ---- Salary Summary ----
-    doc.fontSize(12).fillColor("#2c3e50").text("Salary Summary", 60, y, {
-      underline: true,
-    });
-    y += 20;
-
-    const summary = [
-      ["Gross Salary:", `₹${data.grossSalary}`],
-      ["Net Salary (After Deductions):", `₹${data.netSalary}`],
+    const deductions = [
+      ["Employee PF (12%)", data.employerPF || employerPf],
+      ["TDS", data.tds],
+      ["Absence Deductions", data.absenceDeductions || 0],
     ];
 
-    summary.forEach(([label, value], idx) => {
-      drawRow(doc, y + idx * 16, label, value);
-    });
+    const maxRows = Math.max(earnings.length, deductions.length);
 
-    y += summary.length * 16 + 20;
-    drawLine(doc, y);
-    y += 30;
+    let y = doc.y + 10;
+    const colX = [60, 200, 350, 500];
+    const rowH = 24;
 
-    // ---- Footer ----
-    doc
-      .fontSize(10)
-      .fillColor("gray")
-      .text(
-        "This is a computer-generated payslip and does not require signature.",
-        60,
-        y,
-        { align: "center", oblique: true }
-      );
-    doc.text("© Valour Technologies Pvt. Ltd.", 60, y + 15, {
-      align: "center",
-    });
+    // Header Row
+    doc.fontSize(12).fillColor("#000");
+    doc.rect(colX[0], y, 460, rowH).fill("#eaeaea").stroke();
+    doc.fillColor("#000")
+      .text("Earnings", colX[0] + 5, y + 6)
+      .text("Amount (₹)", colX[1] + 5, y + 6)
+      .text("Deductions", colX[2] + 5, y + 6)
+      .text("Amount (₹)", colX[3] + 5, y + 6);
+
+    y += rowH;
+
+    // Row Data
+    for (let i = 0; i < maxRows; i++) {
+      doc.rect(colX[0], y, 460, rowH).stroke();
+      if (earnings[i]) {
+        doc.text(earnings[i][0], colX[0] + 5, y + 6);
+        doc.text(earnings[i][1].toLocaleString("en-IN"), colX[1] + 5, y + 6);
+      }
+      if (deductions[i]) {
+        doc.text(deductions[i][0], colX[2] + 5, y + 6);
+        doc.text(deductions[i][1].toLocaleString("en-IN"), colX[3] + 5, y + 6);
+      }
+      y += rowH;
+    }
+
+    // Total row highlighted
+    const totalEarnings = earnings.reduce((s, e) => s + e[1], 0);
+    const totalDeductions = deductions.reduce((s, d) => s + d[1], 0);
+    const netPay = totalEarnings - totalDeductions;
+
+    doc.rect(colX[0], y + 5, 460, rowH).fill("#f5f5f5").stroke();
+    doc.font("Helvetica-Bold")
+      .fillColor("#000")
+      .text(`Total Earnings: ₹${totalEarnings.toLocaleString("en-IN")}`, colX[0] + 5, y + 11)
+      .text(`Total Deductions: ₹${totalDeductions.toLocaleString("en-IN")}`, colX[2] + 5, y + 11);
+
+    y += rowH + 10;
+
+    // Net Take-home
+    doc.rect(colX[0], y, 460, rowH).stroke();
+    doc.text(`Net Take-Home Pay: ₹${netPay.toLocaleString("en-IN")}`, colX[0] + 5, y + 6);
 
     doc.end();
     return `/uploads/payslips/${fileName}`;
+
   } catch (error) {
     console.error("PDF generation error:", error);
     return null;
   }
 };
-
 
 // ------------------- OFFER LETTER GENERATOR -------------------
 export const generateOfferLetter = async (data) => {
@@ -133,66 +164,46 @@ export const generateOfferLetter = async (data) => {
     const offerDir = path.join(uploadDir, "offerLetters");
     ensureDir(offerDir);
 
-    const safeName = data.employeeName.replace(/\s+/g, "_");
-    const fileName = `${safeName}_OfferLetter.pdf`;
+    const safeName = (data.employeeName || "Employee")
+      .replace(/\s+/g, "_")        // spaces → _
+      .replace(/[^a-zA-Z0-9_]/g, ""); // remove special chars
+
+    const fileName = `Offer_Letter-${safeName}.pdf`;
     const filePath = path.join(offerDir, fileName);
 
-    const doc = new PDFDocument({ margin: 50 });
-    const stream = fs.createWriteStream(filePath);
-    doc.pipe(stream);
-
-    // ---- HEADER ----
-    doc
-      .fontSize(22)
-      .fillColor("#2c3e50")
-      .text("Valour Technologies Pvt. Ltd.", { align: "center" });
-    doc.moveDown(0.5);
-    doc
-      .fontSize(16)
-      .fillColor("#34495e")
-      .text("OFFER LETTER", { align: "center", underline: true });
-    doc.moveDown(2);
-
-    // ---- BODY ----
-    doc.fontSize(12).fillColor("black");
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, { align: "right" });
-    doc.moveDown(1);
-    doc.text(`To,`);
-    doc.text(`${data.employeeName}`);
-    doc.moveDown(1);
-    doc.font("Helvetica-Bold").text(`Subject: Appointment as ${data.designation}`);
-    doc.moveDown(1);
-    doc.font("Helvetica").text(`Dear ${data.employeeName},`);
-    doc.moveDown(0.5);
-    doc.text(
-      `We are pleased to offer you the position of ${data.designation} at Valour Technologies Pvt. Ltd. ` +
-      `Your joining date will be ${new Date(data.joiningDate).toLocaleDateString()}, and your total compensation (CTC) ` +
-      `will be ₹${data.offeredCtc.toLocaleString()} per annum.`
-    );
-    doc.moveDown(1.5);
-    doc.text(`We look forward to welcoming you to our organization and believe your contribution will be valuable.`);
-    doc.moveDown(1.5);
-    doc.text(`Please sign and return this letter to confirm your acceptance.`);
-    doc.moveDown(3);
-    doc.text(`Sincerely,`);
-    doc.text(`HR Manager`);
-    doc.text(`Valour Technologies Pvt. Ltd.`);
-    doc.moveDown(2);
-    doc.fontSize(10).fillColor("gray").text(
-      "This is a computer-generated document and does not require a signature.",
-      { align: "center" }
-    );
-
-    // ✅ Ensure writing completes
-    doc.end();
-    await new Promise((resolve, reject) => {
-      stream.on("finish", resolve);
-      stream.on("error", reject);
+    const html = generateOfferHTML({
+      ...data,
+      logoBase64
     });
 
+    const browser = await puppeteer.launch({
+      headless: "new",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "domcontentloaded" });
+
+    await page.pdf({
+      path: filePath,
+      format: "A4",
+      printBackground: true,
+
+      /* 🔥 FINAL PERFECT MARGINS */
+      margin: {
+        top: "40px",     // space for logo + header
+        bottom: "90px",   // bottom breathing space
+        left: "70px",
+        right: "70px"
+      }
+    });
+
+    await browser.close();
+
     return `/uploads/offerLetters/${fileName}`;
+
   } catch (error) {
-    console.error("Offer letter PDF generation error:", error);
+    console.error("HTML PDF generation error:", error);
     return null;
   }
 };
