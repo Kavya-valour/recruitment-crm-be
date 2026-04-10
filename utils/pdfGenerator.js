@@ -177,14 +177,16 @@ export const generateOfferLetter = async (data) => {
     });
 
     const browser = await puppeteer.launch({
-    headless: "new", // 🔥 important for production
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu"
-    ]
-  });
+      headless: true, // safer than "new" on Render
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--no-zygote",
+        "--single-process"
+      ],
+    });
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "domcontentloaded" });
