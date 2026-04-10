@@ -2,7 +2,7 @@ import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
 
 import { generateOfferHTML } from "./offerTemplate.js";
 const __filename = fileURLToPath(import.meta.url);
@@ -177,7 +177,8 @@ export const generateOfferLetter = async (data) => {
     });
 
     const browser = await puppeteer.launch({
-      headless: true, // safer than "new" on Render
+      headless: true,
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
