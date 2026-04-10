@@ -19,7 +19,7 @@ export const isValidPhone = (phone) => {
 };
 
 export const isValidCTC = (ctc) => {
-  return isPositiveNumber(ctc) && ctc >= 10000 && ctc <= 10000000; // Reasonable CTC range
+  return isPositiveNumber(ctc) && ctc >= 10000 && ctc <= 10000000;
 };
 
 export const isValidEmployeeId = (id) => {
@@ -33,45 +33,18 @@ export const isValidTime = (timeStr) => {
 };
 
 export const isValidLeaveType = (type) => {
-  const validTypes = ["Casual", "Sick", "Earned"];
-  return validTypes.includes(type);
+  return ["Casual", "Sick", "Earned"].includes(type);
 };
 
 export const isValidAttendanceStatus = (status) => {
-  const validStatuses = ["Present", "Absent", "Leave"];
-  return validStatuses.includes(status);
+  return ["Present", "Absent", "Leave"].includes(status);
 };
 
 export const isValidEmployeeStatus = (status) => {
-  const validStatuses = ["Active", "Left"];
-  return validStatuses.includes(status);
+  return ["Active", "Left"].includes(status);
 };
 
-// List of public holidays (YYYY-MM-DD format)
-// In a real application, this would be stored in database or fetched from an API
-const PUBLIC_HOLIDAYS = [
-  '2025-01-01', // New Year's Day
-  '2025-01-26', // Republic Day
-  '2025-08-15', // Independence Day
-  '2025-10-02', // Gandhi Jayanti
-  '2025-12-25', // Christmas
-  // Add more holidays as needed
-];
-
-export const isWeekend = (dateStr) => {
-  const date = new Date(dateStr);
-  const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
-  return dayOfWeek === 0 || dayOfWeek === 6;
-};
-
-export const isPublicHoliday = (dateStr) => {
-  return PUBLIC_HOLIDAYS.includes(dateStr);
-};
-
-export const isNonWorkingDay = (dateStr) => {
-  return isWeekend(dateStr) || isPublicHoliday(dateStr);
-};
-
+/* ================= EMPLOYEE ================= */
 export const validateEmployeeData = (data) => {
   const errors = [];
 
@@ -106,23 +79,17 @@ export const validateEmployeeData = (data) => {
   return errors;
 };
 
+/* ================= ATTENDANCE ================= */
 export const validateAttendanceData = (data) => {
   const errors = [];
 
-  if (!data.employeeId || !isValidEmployeeId(data.employeeId)) {
+  if (!data.employee_id || !isValidEmployeeId(data.employee_id)) {
     errors.push("Valid employee ID is required");
   }
 
   if (!data.date || !isValidDate(data.date)) {
     errors.push("Valid date is required");
   }
-
-  // NOTE: Commented out for testing - can mark attendance any day
-  // Check if it's a weekend or public holiday
-  // if (isNonWorkingDay(data.date)) {
-  //   const dayType = isWeekend(data.date) ? "weekend" : "public holiday";
-  //   errors.push(`Cannot mark attendance for ${dayType}. This is a non-working day.`);
-  // }
 
   if (!isValidAttendanceStatus(data.status)) {
     errors.push("Invalid attendance status");
@@ -139,10 +106,11 @@ export const validateAttendanceData = (data) => {
   return errors;
 };
 
+/* ================= LEAVE ================= */
 export const validateLeaveData = (data) => {
   const errors = [];
 
-  if (!data.employeeId || !isValidEmployeeId(data.employeeId)) {
+  if (!data.employee_id || !isValidEmployeeId(data.employee_id)) {
     errors.push("Valid employee ID is required");
   }
 
@@ -165,10 +133,11 @@ export const validateLeaveData = (data) => {
   return errors;
 };
 
+/* ================= PAYROLL ================= */
 export const validatePayrollData = (data) => {
   const errors = [];
 
-  if (!data.employeeId) {
+  if (!data.employee_id) {
     errors.push("Employee ID is required");
   }
 

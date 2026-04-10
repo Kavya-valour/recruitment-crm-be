@@ -108,7 +108,7 @@ const generateAttendanceReportData = async ({ type, year, month, week }) => {
 
     const attendancePercentage =
       totalWorkingDays > 0
-        ? (presentDays / totalWorkingDays) * 100
+        ? ((presentDays / totalWorkingDays) * 100).toFixed(2)
         : 0;
 
     return {
@@ -168,8 +168,15 @@ const validateAttendance = async (att) => {
 // ------------------- Add manual attendance -------------------
 export const addAttendance = async (req, res) => {
   try {
-    const { employeeId, date, status, inTime, outTime } = req.body;
+    const { date, status, inTime, outTime } = req.body;
 
+    // 🔥 get from JWT instead of frontend
+    const employeeId = req.user.employeeId;
+    if (!employeeId) {
+      return res.status(400).json({
+        message: "Employee ID missing from token"
+      });
+    }
     // Validate input data
     const validationErrors = validateAttendanceData({ employeeId, date, status, inTime, outTime });
     if (validationErrors.length > 0) {

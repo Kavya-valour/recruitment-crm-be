@@ -44,12 +44,17 @@ export const createOfferLetter = async (req, res) => {
     };
 
     // ✅ Generate PDF
+    console.log("Generating PDF...");
     const relativePdfPath = await generateOfferLetter(payload);
+    console.log("PDF PATH:", relativePdfPath);
 
     if (!relativePdfPath) {
-      return res.status(500).json({ message: "PDF generation failed" });
+      console.error("PDF generation failed");
+      return res.status(500).json({
+        message: "PDF generation failed in server"
+      });
     }
-
+    
     // ✅ Construct full public URL
     const fullPdfUrl = `${req.protocol}://${req.get("host")}${relativePdfPath}`;
 
