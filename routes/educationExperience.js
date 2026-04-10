@@ -8,88 +8,77 @@ const router = express.Router();
 // Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + path.extname(file.originalname)),
 });
 
 const upload = multer({ storage });
 
-// Add Education
-router.put("/:id", upload.fields([
-  { name: "education", maxCount: 10 },
-  { name: "experience", maxCount: 10 },
-]), async (req, res) => {
-  try {
-    const employee = await Employee.findById(req.params.id);
-    if (!employee) return res.status(404).json({ message: "Employee not found" });
+// ✅ Add / Update Education & Experience
+router.put(
+  "/:id",
+  upload.fields([
+    { name: "education", maxCount: 10 },
+    { name: "experience", maxCount: 10 },
+  ]),
+  async (req, res) => {
+    try {
+      const employee = await Employee.findById(req.params.id);
+      if (!employee)
+        return res.status(404).json({ message: "Employee not found" });
 
-    // Parse JSON from formData
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 434a8b7 (final attendance report + offer letter)
-    if (req.body.education !== undefined) {
-      const rawEducation = req.body.education;
-      if (typeof rawEducation === "string" && rawEducation.trim() !== "") {
-        try {
-          employee.education = JSON.parse(rawEducation);
-        } catch (parseErr) {
-          return res.status(400).json({ message: "Invalid education data" });
+      // ✅ Parse education JSON safely
+      if (req.body.education !== undefined) {
+        const rawEducation = req.body.education;
+        if (typeof rawEducation === "string" && rawEducation.trim() !== "") {
+          try {
+            employee.education = JSON.parse(rawEducation);
+          } catch (err) {
+            return res
+              .status(400)
+              .json({ message: "Invalid education data" });
+          }
         }
       }
-<<<<<<< HEAD
-    }
-    if (req.body.experience !== undefined) {
-      const rawExperience = req.body.experience;
-      if (typeof rawExperience === "string" && rawExperience.trim() !== "") {
-        try {
-          employee.experience = JSON.parse(rawExperience);
-        } catch (parseErr) {
-          return res.status(400).json({ message: "Invalid experience data" });
+
+      // ✅ Parse experience JSON safely
+      if (req.body.experience !== undefined) {
+        const rawExperience = req.body.experience;
+        if (typeof rawExperience === "string" && rawExperience.trim() !== "") {
+          try {
+            employee.experience = JSON.parse(rawExperience);
+          } catch (err) {
+            return res
+              .status(400)
+              .json({ message: "Invalid experience data" });
+          }
         }
       }
-=======
-    if (req.body.education_details) {
-      employee.education = JSON.parse(req.body.education);
-    }
-    if (req.body.experience_details) {
-      employee.experience = JSON.parse(req.body.experience);
->>>>>>> da0db0d (backend project setup)
-=======
-    }
-    if (req.body.experience !== undefined) {
-      const rawExperience = req.body.experience;
-      if (typeof rawExperience === "string" && rawExperience.trim() !== "") {
-        try {
-          employee.experience = JSON.parse(rawExperience);
-        } catch (parseErr) {
-          return res.status(400).json({ message: "Invalid experience data" });
-        }
+
+      // ✅ Attach uploaded files
+      if (req.files?.education) {
+        req.files.education.forEach((file, i) => {
+          if (employee.education[i]) {
+            employee.education[i].document = file.path;
+          }
+        });
       }
->>>>>>> 434a8b7 (final attendance report + offer letter)
-    }
 
-    // Attach uploaded files if any
-    if (req.files["education"]) {
-      req.files["education"].forEach((file, i) => {
-        employee.education[i].document = file.path;
-      });
-    }
-    if (req.files["experience"]) {
-      req.files["experience"].forEach((file, i) => {
-        employee.experience[i].document = file.path;
-      });
-    }
+      if (req.files?.experience) {
+        req.files.experience.forEach((file, i) => {
+          if (employee.experience[i]) {
+            employee.experience[i].document = file.path;
+          }
+        });
+      }
 
-    await employee.save();
-    res.json(employee);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: err.message });
+      await employee.save();
+      res.json(employee);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: err.message });
+    }
   }
-});
+);
 
-<<<<<<< HEAD
 export default router;
-=======
-export default router;
->>>>>>> da0db0d (backend project setup)

@@ -4,7 +4,6 @@ import { protect } from "../middleware/authMiddleware.js";
 import {
   getEmployees,
   getEmployeeById,
-  getEmployeeByLookup,
   addEmployee,
   updateEmployee,
   deleteEmployee,
@@ -22,7 +21,7 @@ const upload = multer({ storage });
 
 // Routes
 router.get("/", getEmployees);
-router.get("/lookup", getEmployeeByLookup);
+
 router.get("/:id", getEmployeeById);
 
 // ✅ Protect add employee

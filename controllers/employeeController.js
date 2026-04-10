@@ -1,7 +1,6 @@
 import Employee from "../models/Employee.js";
-import fs from "fs";
-import path from "path";
 import { validateEmployeeData } from "../utils/validators.js";
+import ExcelJS from "exceljs";
 
 // Generate sequential Employee IDs (VT000101, VT000102...)
 const generateEmployeeId = async () => {
@@ -10,62 +9,69 @@ const generateEmployeeId = async () => {
 
   if (lastEmployee && lastEmployee.employee_id) {
     const numPart = parseInt(lastEmployee.employee_id.replace("VT", ""), 10);
-    nextNumber = numPart + 1;
+    if (!isNaN(numPart)) nextNumber = numPart + 1;
   }
 
-  return `VT${nextNumber.toString().padStart(4, "0")}`;
+  return `VT${nextNumber.toString().padStart(6, "0")}`;
 };
 
-// Get all employees
+// ✅ Get all employees
 export const getEmployees = async (req, res) => {
   try {
-    const employees = await Employee.find(); // full data
+    const employees = await Employee.find();
     res.json(employees);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Get single employee
+// ✅ Get single employee
 export const getEmployeeById = async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
-    if (!employee) return res.status(404).json({ message: "Employee not found" });
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
     res.json(employee);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Add new employee with auto-generated VT000X ID
+// ✅ Add employee
 export const addEmployee = async (req, res) => {
   try {
-    // Validate input data
     const validationErrors = validateEmployeeData(req.body);
     if (validationErrors.length > 0) {
       return res.status(400).json({
         message: "Validation failed",
-        errors: validationErrors
+        errors: validationErrors,
       });
     }
 
-    // Check for existing email
+    // Check email
     const existing = await Employee.findOne({ email: req.body.email });
-    if (existing) return res.status(400).json({ message: "Email already exists" });
+    if (existing) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
 
-    // Use manual ID if provided, otherwise auto-generate
+    // Generate or validate employee_id
     let employee_id = req.body.employee_id;
+
     if (!employee_id) {
       employee_id = await generateEmployeeId();
     } else {
-      // Validate manual employee ID format (VT000001, VT000002, etc.)
-      const idRegex = /^VT\d{6}$/;
+      const idRegex = /^VT\d{6}$/; // ✅ fixed (matches generator)
       if (!idRegex.test(employee_id)) {
-        return res.status(400).json({ message: "Employee ID must be in format VT000001" });
+        return res
+          .status(400)
+          .json({ message: "Employee ID must be like VT000101" });
       }
-      // Check if manual ID already exists
+
       const existingId = await Employee.findOne({ employee_id });
-      if (existingId) return res.status(400).json({ message: "Employee ID already exists" });
+      if (existingId) {
+        return res.status(400).json({ message: "Employee ID already exists" });
+      }
     }
 
     const employee = new Employee({
@@ -82,6 +88,7 @@ export const addEmployee = async (req, res) => {
     });
 
     const saved = await employee.save();
+
     res.status(201).json({
       message: "Employee added successfully",
       employee: saved,
@@ -92,14 +99,15 @@ export const addEmployee = async (req, res) => {
   }
 };
 
-// Update employee including education & experience with optional files
+// ✅ Update employee
 export const updateEmployee = async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
-    if (!employee) return res.status(404).json({ message: "Employee not found" });
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
 
-    // Update basic fields
-    const basicFields = [
+    const fields = [
       "name",
       "email",
       "phone",
@@ -110,37 +118,110 @@ export const updateEmployee = async (req, res) => {
       "current_ctc",
       "status",
     ];
-    basicFields.forEach((field) => {
-      if (req.body[field] !== undefined) employee[field] = req.body[field];
+
+    fields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        employee[field] = req.body[field];
+      }
     });
 
-    // Update education if provided
+    // ✅ Safe JSON parsing
     if (req.body.education) {
-      const eduArray = JSON.parse(req.body.education);
-      employee.education = eduArray;
+      try {
+        employee.education = JSON.parse(req.body.education);
+      } catch {
+        return res.status(400).json({ message: "Invalid education data" });
+      }
     }
 
-    // Update experience if provided
     if (req.body.experience) {
-      const expArray = JSON.parse(req.body.experience);
-      employee.experience = expArray;
+      try {
+        employee.experience = JSON.parse(req.body.experience);
+      } catch {
+        return res.status(400).json({ message: "Invalid experience data" });
+      }
     }
 
     await employee.save();
-    res.json({ message: "Employee updated successfully", employee });
+
+    res.json({
+      message: "Employee updated successfully",
+      employee,
+    });
   } catch (err) {
     console.error("Error updating employee:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-// Delete employee
+// ✅ Delete employee
 export const deleteEmployee = async (req, res) => {
   try {
-    await Employee.findByIdAndDelete(req.params.id);
+    const deleted = await Employee.findByIdAndDelete(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
     res.json({ message: "Employee deleted successfully" });
   } catch (err) {
     console.error("Error deleting employee:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const exportEmployeesToExcel = async (req, res) => {
+  try {
+    const employees = await Employee.find();
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Employees");
+
+    // ✅ Define columns
+    worksheet.columns = [
+      { header: "Employee ID", key: "employee_id", width: 15 },
+      { header: "Name", key: "name", width: 20 },
+      { header: "Email", key: "email", width: 25 },
+      { header: "Phone", key: "phone", width: 15 },
+      { header: "Department", key: "department", width: 20 },
+      { header: "Designation", key: "designation", width: 20 },
+      { header: "Joining Date", key: "joining_date", width: 20 },
+      { header: "Status", key: "status", width: 15 },
+      { header: "CTC", key: "current_ctc", width: 15 },
+    ];
+
+    // ✅ Add rows
+    employees.forEach((emp) => {
+      worksheet.addRow({
+        employee_id: emp.employee_id,
+        name: emp.name,
+        email: emp.email,
+        phone: emp.phone,
+        department: emp.department,
+        designation: emp.designation,
+        joining_date: emp.joining_date
+          ? emp.joining_date.toISOString().split("T")[0]
+          : "",
+        status: emp.status,
+        current_ctc: emp.current_ctc,
+      });
+    });
+
+    // ✅ Set headers for download
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=employees.xlsx"
+    );
+
+    // ✅ Send file
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error("Excel export error:", err);
     res.status(500).json({ message: err.message });
   }
 };

@@ -1,66 +1,50 @@
 import mongoose from "mongoose";
 
-const payrollSchema = new mongoose.Schema({
-  employeeId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee", required: true },
-<<<<<<< HEAD
-<<<<<<< HEAD
-  formattedEmployeeId: { type: String }, // VT/DEV/2025/0108
-  month: { type: String, required: true },
-  year: { type: Number, required: true },
-  ctc: { type: Number, required: true },
+const payrollSchema = new mongoose.Schema(
+  {
+    employeeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Employee",
+      required: true,
+    },
 
-  // Auto-calculated salary fields
-  basic: { type: Number, default: 0 },
-  hra: { type: Number, default: 0 },
-  da: { type: Number, default: 0 },
-  specialAllowance: { type: Number, default: 0 },
-  employerPF: { type: Number, default: 0 },
-  tds: { type: Number, default: 0 },
-  absenceDeductions: { type: Number, default: 0 },
+    // ✅ Formatted ID (useful for display like VT/DEV/2025/0108)
+    formattedEmployeeId: { type: String },
 
-  totalEarnings: { type: Number, default: 0 },
-  totalDeductions: { type: Number, default: 0 },
-  grossSalary: { type: Number, default: 0 },
-  netSalary: { type: Number, default: 0 },
+    month: { type: String, required: true },
+    year: { type: Number, required: true },
+    ctc: { type: Number, required: true },
 
-  status: { type: String, enum: ["Generated", "Paid"], default: "Generated" },
-  payslipUrl: { type: String }, // optional PDF link
+    // ✅ Salary breakdown
+    basic: { type: Number, default: 0 },
+    hra: { type: Number, default: 0 },
+    da: { type: Number, default: 0 },
+    specialAllowance: { type: Number, default: 0 },
+    employerPF: { type: Number, default: 0 },
+    tds: { type: Number, default: 0 },
+    absenceDeductions: { type: Number, default: 0 },
 
-  // Optional audit fields
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-}, { timestamps: true });
+    // ✅ Totals
+    totalEarnings: { type: Number, default: 0 },
+    totalDeductions: { type: Number, default: 0 },
+    grossSalary: { type: Number, default: 0 },
+    netSalary: { type: Number, default: 0 },
 
-export default mongoose.model("Payroll", payrollSchema);
-=======
-=======
-  formattedEmployeeId: { type: String }, // VT/DEV/2025/0108
->>>>>>> 434a8b7 (final attendance report + offer letter)
-  month: { type: String, required: true },
-  year: { type: Number, required: true },
-  ctc: { type: Number, required: true },
+    // ✅ Status
+    status: {
+      type: String,
+      enum: ["Generated", "Paid"],
+      default: "Generated",
+    },
 
-  // Auto-calculated salary fields
-  basic: { type: Number, default: 0 },
-  hra: { type: Number, default: 0 },
-  da: { type: Number, default: 0 },
-  specialAllowance: { type: Number, default: 0 },
-  employerPF: { type: Number, default: 0 },
-  tds: { type: Number, default: 0 },
-  absenceDeductions: { type: Number, default: 0 },
+    // ✅ Payslip PDF
+    payslipUrl: { type: String },
 
-  totalEarnings: { type: Number, default: 0 },
-  totalDeductions: { type: Number, default: 0 },
-  grossSalary: { type: Number, default: 0 },
-  netSalary: { type: Number, default: 0 },
-
-  status: { type: String, enum: ["Generated", "Paid"], default: "Generated" },
-  payslipUrl: { type: String }, // optional PDF link
-
-  // Optional audit fields
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-}, { timestamps: true });
+    // ✅ Audit fields
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  },
+  { timestamps: true }
+);
 
 export default mongoose.model("Payroll", payrollSchema);
->>>>>>> da0db0d (backend project setup)
