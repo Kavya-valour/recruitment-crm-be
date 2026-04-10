@@ -1,4 +1,5 @@
 import Employee from "../models/Employee.js";
+<<<<<<< HEAD
 import ExcelJS from "exceljs";
 import fs from "fs";
 import path from "path";
@@ -8,13 +9,26 @@ import { validateEmployeeData } from "../utils/validators.js";
 const generateEmployeeId = async () => {
   const lastEmployee = await Employee.findOne().sort({ createdAt: -1 });
   let nextNumber = 101; // Start from 101
+=======
+import fs from "fs";
+import path from "path";
+
+// Generate sequential Employee IDs (VT0001, VT0002...)
+const generateEmployeeId = async () => {
+  const lastEmployee = await Employee.findOne().sort({ createdAt: -1 });
+  let nextNumber = 1;
+>>>>>>> da0db0d (backend project setup)
 
   if (lastEmployee && lastEmployee.employee_id) {
     const numPart = parseInt(lastEmployee.employee_id.replace("VT", ""), 10);
     nextNumber = numPart + 1;
   }
 
+<<<<<<< HEAD
   return `VT${nextNumber.toString().padStart(6, "0")}`;
+=======
+  return `VT${nextNumber.toString().padStart(4, "0")}`;
+>>>>>>> da0db0d (backend project setup)
 };
 
 // Get all employees
@@ -38,6 +52,7 @@ export const getEmployeeById = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // Get employee by email or employee_id
 export const getEmployeeByLookup = async (req, res) => {
   try {
@@ -94,6 +109,20 @@ export const addEmployee = async (req, res) => {
       employee_id,
       name: req.body.name.trim(),
       email: req.body.email.toLowerCase(),
+=======
+// Add new employee with auto-generated VT000X ID
+export const addEmployee = async (req, res) => {
+  try {
+    const existing = await Employee.findOne({ email: req.body.email });
+    if (existing) return res.status(400).json({ message: "Email already exists" });
+
+    const employee_id = await generateEmployeeId();
+
+    const employee = new Employee({
+      employee_id,
+      name: req.body.name,
+      email: req.body.email,
+>>>>>>> da0db0d (backend project setup)
       phone: req.body.phone,
       designation: req.body.designation,
       department: req.body.department,
@@ -110,6 +139,7 @@ export const addEmployee = async (req, res) => {
     });
   } catch (err) {
     console.error("Error in addEmployee:", err);
+<<<<<<< HEAD
     
     // Handle MongoDB validation errors
     if (err.name === "ValidationError") {
@@ -124,6 +154,9 @@ export const addEmployee = async (req, res) => {
     }
     
     res.status(500).json({ message: err.message || "Internal server error" });
+=======
+    res.status(500).json({ message: err.message });
+>>>>>>> da0db0d (backend project setup)
   }
 };
 
@@ -150,6 +183,7 @@ export const updateEmployee = async (req, res) => {
     });
 
     // Update education if provided
+<<<<<<< HEAD
     if (req.body.education !== undefined) {
       const rawEducation = req.body.education;
       if (typeof rawEducation === "string" && rawEducation.trim() !== "") {
@@ -171,6 +205,17 @@ export const updateEmployee = async (req, res) => {
           return res.status(400).json({ message: "Invalid experience data" });
         }
       }
+=======
+    if (req.body.education) {
+      const eduArray = JSON.parse(req.body.education);
+      employee.education = eduArray;
+    }
+
+    // Update experience if provided
+    if (req.body.experience) {
+      const expArray = JSON.parse(req.body.experience);
+      employee.experience = expArray;
+>>>>>>> da0db0d (backend project setup)
     }
 
     await employee.save();
@@ -184,6 +229,7 @@ export const updateEmployee = async (req, res) => {
 // Delete employee
 export const deleteEmployee = async (req, res) => {
   try {
+<<<<<<< HEAD
     const employee = await Employee.findByIdAndDelete(req.params.id);
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
@@ -262,3 +308,11 @@ export const exportEmployeesToExcel = async (req, res) => {
     res.status(500).json({ message: "Failed to export employees to Excel" });
   }
 };
+=======
+    await Employee.findByIdAndDelete(req.params.id);
+    res.json({ message: "Employee deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+>>>>>>> da0db0d (backend project setup)

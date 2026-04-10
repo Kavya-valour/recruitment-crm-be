@@ -58,4 +58,8 @@ const employeeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+<<<<<<< HEAD
 export default mongoose.model("Employee", employeeSchema);
+=======
+export default mongoose.model("Employee", employeeSchema);
+>>>>>>> da0db0d (backend project setup)

@@ -19,12 +19,12 @@ connectDB();
 
 const app = express();
 
-// ✅ Updated CORS
+// ✅ BEST CORS (keep this)
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5000",
   "https://recruitment-crm-lyart.vercel.app",
-  process.env.FRONTEND_URL, // Add production frontend URL via env var
+  process.env.FRONTEND_URL,
 ];
 
 app.use(cors({
@@ -39,9 +39,10 @@ app.use(cors({
   credentials: true
 }));
 
+// ✅ Use this (NOT bodyParser)
 app.use(express.json());
 
-// ✅ Serve uploaded files correctly (important for Render)
+// ✅ VERY IMPORTANT (for Render PDFs)
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Routes
@@ -54,7 +55,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/education-experience", educationExperienceRoutes);
 
-// Error Handling
+// Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: err.message });

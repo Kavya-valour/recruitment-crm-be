@@ -1,5 +1,6 @@
 import express from "express";
 import multer from "multer";
+<<<<<<< HEAD
 import {
   addAttendance,
   getAttendance,
@@ -9,10 +10,14 @@ import {
   exportAttendanceReportExcel,
 } from "../controllers/attendanceController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
+=======
+import { addAttendance, getAttendance, uploadCsv } from "../controllers/attendanceController.js";
+>>>>>>> da0db0d (backend project setup)
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 
+<<<<<<< HEAD
 // ✅ BASIC ROUTE
 router.get("/", getAttendance);
 
@@ -36,3 +41,10 @@ router.post(
 router.put("/:id", protect, authorize("admin", "hr"), updateAttendance);
 
 export default router;
+=======
+router.get("/", getAttendance);
+router.post("/", addAttendance);           // Manual
+router.post("/upload", upload.single("file"), uploadCsv);  // CSV
+
+export default router;
+>>>>>>> da0db0d (backend project setup)

@@ -1,4 +1,5 @@
 import OfferLetter from "../models/OfferLetter.js";
+<<<<<<< HEAD
 import { generateOfferLetter } from "../utils/pdfGenerator.js";
 
 export const createOfferLetter = async (req, res) => {
@@ -83,6 +84,43 @@ export const createOfferLetter = async (req, res) => {
       data: savedOffer,
     });
 
+=======
+import pdfGenerator from "../utils/pdfGenerator.js";
+
+export const createOfferLetter = async (req, res) => {
+  try {
+    const { employeeName, designation, joiningDate, offeredCtc } = req.body;
+
+    if (!employeeName || !designation || !joiningDate || !offeredCtc) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // ✅ Wait until PDF is fully written
+    const relativePdfPath = await pdfGenerator.generateOfferLetter({
+      employeeName,
+      designation,
+      joiningDate,
+      offeredCtc,
+    });
+
+    if (!relativePdfPath) {
+      return res.status(500).json({ message: "PDF generation failed" });
+    }
+
+    // ✅ Full absolute URL for frontend
+    const fullPdfUrl = `${req.protocol}://${req.get("host")}${relativePdfPath}`;
+
+    const offer = new OfferLetter({
+      employeeName,
+      designation,
+      joiningDate,
+      offeredCtc,
+      pdfUrl: fullPdfUrl,
+    });
+
+    const savedOffer = await offer.save();
+    res.status(201).json(savedOffer);
+>>>>>>> da0db0d (backend project setup)
   } catch (error) {
     console.error("Error creating offer letter:", error);
     res.status(500).json({ message: error.message });
@@ -99,6 +137,7 @@ export const getOfferLetters = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 // Regenerate offer letter PDF
 export const regenerateOfferLetter = async (req, res) => {
   try {
@@ -142,6 +181,8 @@ export const regenerateOfferLetter = async (req, res) => {
   }
 };
 
+=======
+>>>>>>> da0db0d (backend project setup)
 // Delete offer letter
 export const deleteOfferLetter = async (req, res) => {
   try {
@@ -151,4 +192,8 @@ export const deleteOfferLetter = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> da0db0d (backend project setup)

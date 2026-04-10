@@ -23,6 +23,7 @@ router.put("/:id", upload.fields([
     if (!employee) return res.status(404).json({ message: "Employee not found" });
 
     // Parse JSON from formData
+<<<<<<< HEAD
     if (req.body.education !== undefined) {
       const rawEducation = req.body.education;
       if (typeof rawEducation === "string" && rawEducation.trim() !== "") {
@@ -42,6 +43,13 @@ router.put("/:id", upload.fields([
           return res.status(400).json({ message: "Invalid experience data" });
         }
       }
+=======
+    if (req.body.education_details) {
+      employee.education = JSON.parse(req.body.education);
+    }
+    if (req.body.experience_details) {
+      employee.experience = JSON.parse(req.body.experience);
+>>>>>>> da0db0d (backend project setup)
     }
 
     // Attach uploaded files if any
@@ -64,4 +72,8 @@ router.put("/:id", upload.fields([
   }
 });
 
+<<<<<<< HEAD
 export default router;
+=======
+export default router;
+>>>>>>> da0db0d (backend project setup)
