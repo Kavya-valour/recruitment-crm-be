@@ -170,53 +170,59 @@ export const addAttendance = async (req, res) => {
   try {
     const { date, status, inTime, outTime } = req.body;
 
-    // 🔥 get from JWT instead of frontend
+    // 🔥 Get employeeId from JWT
     const employeeId = req.user.employeeId;
+
     if (!employeeId) {
       return res.status(400).json({
-        message: "Employee ID missing from token"
-      });
-    }
-    // Validate input data
-    const validationErrors = validateAttendanceData({ employeeId, date, status, inTime, outTime });
-    if (validationErrors.length > 0) {
-      return res.status(400).json({
-        message: "Validation failed",
-        errors: validationErrors
+        message: "Employee ID missing. Please login again.",
       });
     }
 
-    // Check for duplicate attendance entry
+    // 🔥 MAP employeeId → employee_id
+    const employee = await Employee.findOne({ employee_id: employeeId });
+
+    if (!employee) {
+      return res.status(404).json({
+        message: "Employee not found in employees collection",
+      });
+    }
+
+    // 🔥 Duplicate check
     const d = new Date(date);
     const start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const end = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
 
     const existing = await Attendance.findOne({
-      employeeId,
+      employeeId: employeeId,
       date: { $gte: start, $lt: end },
     });
 
     if (existing) {
       return res.status(400).json({
-        message: "Attendance already marked for this employee on this date",
+        message: "Attendance already marked for this date",
       });
     }
 
+    // ✅ Save attendance
     const record = new Attendance({
-      employeeId,
+      employeeId: employeeId, // keep camelCase here
       date,
       status,
       inTime,
       outTime,
     });
+
     const saved = await record.save();
+
     res.status(201).json({
       message: "Attendance marked successfully",
-      attendance: saved
+      attendance: saved,
     });
+
   } catch (err) {
     console.error("Error adding attendance:", err);
-    res.status(500).json({ message: err.message || "Internal server error" });
+    res.status(500).json({ message: err.message });
   }
 };
 

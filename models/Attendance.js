@@ -1,8 +1,7 @@
 import mongoose from "mongoose";
 
 const attendanceSchema = new mongoose.Schema({
-  employee_id: { type: String },
-  employeeId: { type: String, required: true },
+  employeeId: { type: String, required: true }, // ✅ only one field
   date: { type: Date, required: true },
   status: { type: String, enum: ["Present", "Absent", "Leave"], default: "Absent" },
   inTime: { type: String },
