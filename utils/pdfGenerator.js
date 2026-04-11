@@ -40,7 +40,9 @@ export const generatePayslip = async (data) => {
     const payslipDir = path.join(uploadDir, "payslips");
     ensureDir(payslipDir);
 
-    const safeEmployeeId = data.employeeId.replace(/\//g, "-");
+    const safeEmployeeId = data.employeeId
+  ? String(data.employeeId).replace(/\//g, "-")
+  : "EMP";
     const fileName = `${safeEmployeeId}_${data.month}_${data.year}.pdf`;
     const filePath = path.join(payslipDir, fileName);
 
@@ -67,7 +69,10 @@ export const generatePayslip = async (data) => {
       ["Employee Name", data.employeeName],
       ["Designation", data.designation],
       ["Employee ID", data.employeeId],
-      ["Joining Date", new Date(data.joiningDate).toLocaleDateString("en-GB")],
+      ["Joining Date", data.joiningDate
+        ? new Date(data.joiningDate).toLocaleDateString("en-GB")
+        : "N/A"
+      ],
       ["Work Location", data.workLocation || "Remote / Office"],
     ];
 

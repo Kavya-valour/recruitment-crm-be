@@ -24,15 +24,36 @@ export const getPayrolls = async (req, res) => {
 export const addPayroll = async (req, res) => {
   try {
     const { employeeId, month, year, ctc } = req.body;
+    // ✅ Convert month string → number
+    const monthMap = {
+      January: 0,
+      February: 1,
+      March: 2,
+      April: 3,
+      May: 4,
+      June: 5,
+      July: 6,
+      August: 7,
+      September: 8,
+      October: 9,
+      November: 10,
+      December: 11
+    };
+
+    const monthIndex = monthMap[month];
+
+    if (monthIndex === undefined) {
+      return res.status(400).json({ message: "Invalid month format" });
+    }
 
     // Validate input data
-    const validationErrors = validatePayrollData({ employeeId, month, year, ctc });
-    if (validationErrors.length > 0) {
-      return res.status(400).json({
-        message: "Validation failed",
-        errors: validationErrors
-      });
-    }
+    // const validationErrors = validatePayrollData({ employeeId, month, year, ctc });
+    // if (validationErrors.length > 0) {
+    //   return res.status(400).json({
+    //     message: "Validation failed",
+    //     errors: validationErrors
+    //   });
+    // }
 
     const employee = await Employee.findById(employeeId);
     if (!employee) return res.status(404).json({ message: "Employee not found" });
@@ -52,12 +73,12 @@ export const addPayroll = async (req, res) => {
     const ctcNum = Number(ctc);
 
     // ---- Get attendance and leave data for the month ----
-    const startOfMonth = new Date(year, month - 1, 1);
-    const endOfMonth = new Date(year, month, 0);
+    const startOfMonth = new Date(year, monthIndex, 1);
+const endOfMonth = new Date(year, monthIndex + 1, 0);
 
     // Get attendance records
     const attendanceRecords = await Attendance.find({
-      employeeId: employee.employee_id,
+     employeeId: employeeId,
       date: { $gte: startOfMonth, $lte: endOfMonth }
     });
 
@@ -136,7 +157,7 @@ export const addPayroll = async (req, res) => {
       employeeName: employee.name,
       designation: employee.designation,
       employeeId: formattedEmployeeId,
-      joiningDate: employee.joiningDate,
+      joiningDate: employee.joining_date || employee.joiningDate,
       workLocation: employee.workLocation || "Remote",
       month,
       year,
