@@ -130,7 +130,8 @@ const endOfMonth = new Date(year, monthIndex + 1, 0);
     const grossSalary = totalEarnings;
 
     // ---- Formatted Employee ID ----
-    const formattedEmployeeId = `VT/${employee.role || "DEV"}/${year}/${String(employee.employeeNumber).padStart(4, '0')}`;
+    const empNumber = employee.employeeNumber || employee._id.toString().slice(-4);
+    const formattedEmployeeId = `VT${String(empNumber).padStart(6, "0")}`;
 
     // ---- Create payroll record ----
     const payroll = new Payroll({
