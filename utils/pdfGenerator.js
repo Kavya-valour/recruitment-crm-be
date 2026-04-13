@@ -2,7 +2,7 @@ import { generatePayslipHTML } from "./payslipTemplate.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import puppeteer from "puppeteer-core";
+import puppeteer from "puppeteer";
 
 import { generateOfferHTML } from "./offerTemplate.js";
 const __filename = fileURLToPath(import.meta.url);
@@ -42,16 +42,11 @@ export const generatePayslip = async (data) => {
     });
 
     const browser = await puppeteer.launch({
-      headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/chromium",
+      headless: "new",
       args: [
         "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-zygote",
-        "--single-process"
-      ],
+        "--disable-setuid-sandbox"
+      ]
     });
 
     const page = await browser.newPage();
@@ -68,7 +63,7 @@ export const generatePayslip = async (data) => {
     return `/uploads/payslips/${fileName}`;
   } catch (error) {
     console.error("Payslip error:", error);
-    return null;
+    throw new Error("PDF generation failed");
   }
 };
 
@@ -91,16 +86,11 @@ export const generateOfferLetter = async (data) => {
     });
 
     const browser = await puppeteer.launch({
-      headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+      headless: "new",
       args: [
         "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-        "--no-zygote",
-        "--single-process"
-      ],
+        "--disable-setuid-sandbox"
+      ]
     });
 
     const page = await browser.newPage();
@@ -126,7 +116,7 @@ export const generateOfferLetter = async (data) => {
 
   } catch (error) {
     console.error("HTML PDF generation error:", error);
-    return null;
+    throw new Error("PDF generation failed");
   }
 };
 

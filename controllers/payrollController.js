@@ -234,17 +234,40 @@ export const deletePayroll = async (req, res) => {
 // ---------------- GENERATE Payslip PDF ----------------
 export const generatePayslipPDF = async (req, res) => {
   try {
-    const payroll = await Payroll.findById(req.params.id);
+    const payroll = await Payroll.findById(req.params.id).populate("employeeId");
 
-    if (!payroll || !payroll.payslipUrl) {
-      return res.status(404).json({ message: "Payslip not found" });
+    if (!payroll) {
+      return res.status(404).json({ message: "Payroll not found" });
     }
 
-    // ✅ Return URL instead of downloading file
-    res.json({ url: payroll.payslipUrl });
+    const pdfPath = await pdfGenerator.generatePayslip({
+      employeeName: payroll.employeeId.name,
+      designation: payroll.employeeId.designation,
+      employeeId: payroll.formattedEmployeeId,
+      joiningDate: payroll.employeeId.joining_date,
+      workLocation: payroll.employeeId.workLocation,
+      month: payroll.month,
+      year: payroll.year,
+      basic: payroll.basic,
+      hra: payroll.hra,
+      da: payroll.da,
+      specialAllowance: payroll.specialAllowance,
+      employerPF: payroll.employerPF,
+      tds: payroll.tds,
+      absenceDeductions: payroll.absenceDeductions,
+      totalEarnings: payroll.totalEarnings,
+      totalDeductions: payroll.totalDeductions,
+      grossSalary: payroll.grossSalary,
+      netSalary: payroll.netSalary,
+      ctc: payroll.ctc,
+    });
+
+    const fullPath = path.resolve(`.${pdfPath}`);
+
+    res.download(fullPath);
 
   } catch (error) {
-    console.error("Download error:", error);
-    res.status(500).json({ message: "Failed to fetch payslip" });
+    console.error("❌ Payslip error:", error);
+    res.status(500).json({ message: "Failed to generate payslip PDF" });
   }
 };
