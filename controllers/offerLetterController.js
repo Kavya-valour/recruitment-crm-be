@@ -83,10 +83,15 @@ export const createOfferLetter = async (req, res) => {
       data: savedOffer,
     });
 
-  } catch (error) {
-    console.error("Error creating offer letter:", error);
-    res.status(500).json({ message: error.message });
-  }
+    } catch (error) {
+      console.error("🔥 FULL ERROR:", error);
+      console.log("🔥 STACK TRACE:", error.stack); // ✅ ADD THIS
+
+      res.status(500).json({
+        message: error.message,
+        stack: error.stack // optional (for debugging)
+      });
+    }
 };
 
 // Get all offer letters
