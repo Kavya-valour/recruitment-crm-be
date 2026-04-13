@@ -5,13 +5,14 @@ import Leave from "../models/Leave.js";
 import pdfGenerator from "../utils/pdfGenerator.js";
 import { validatePayrollData } from "../utils/validators.js";
 import path from "path";
+import fs from "fs";
 
 // ---------------- GET all payrolls ----------------
 export const getPayrolls = async (req, res) => {
   try {
     const payrolls = await Payroll.find().populate(
-      "employeeId",
-      "name employeeNumber designation workLocation joiningDate role"
+    "employeeId",
+    "name employee_id designation workLocation joining_date"
     );
     res.json(payrolls);
   } catch (error) {
@@ -130,8 +131,7 @@ const endOfMonth = new Date(year, monthIndex + 1, 0);
     const grossSalary = totalEarnings;
 
     // ---- Formatted Employee ID ----
-    const empNumber = employee.employeeNumber || employee._id.toString().slice(-4);
-    const formattedEmployeeId = `VT${String(empNumber).padStart(6, "0")}`;
+    const formattedEmployeeId = employee.employee_id;
 
     // ---- Create payroll record ----
     const payroll = new Payroll({
@@ -181,8 +181,11 @@ const endOfMonth = new Date(year, monthIndex + 1, 0);
     res.status(201).json(savedPayroll);
 
   } catch (error) {
-    console.error("Error adding payroll:", error);
-    res.status(500).json({ message: "Failed to add payroll" });
+      console.error("🔥 FULL ERROR:", error);
+      res.status(500).json({
+        message: error.message,
+        stack: error.stack
+      });
   }
 };
 
@@ -225,36 +228,22 @@ export const deletePayroll = async (req, res) => {
 // ---------------- GENERATE Payslip PDF ----------------
 export const generatePayslipPDF = async (req, res) => {
   try {
-    const payroll = await Payroll.findById(req.params.id).populate("employeeId");
-    if (!payroll) return res.status(404).json({ message: "Payroll not found" });
+    const payroll = await Payroll.findById(req.params.id);
 
-    const pdfPath = await pdfGenerator.generatePayslip({
-      employeeName: payroll.employeeId.name,
-      designation: payroll.employeeId.designation,
-      employeeId: payroll.formattedEmployeeId,
-      joiningDate: payroll.employeeId.joiningDate,
-      workLocation: payroll.employeeId.workLocation,
-      month: payroll.month,
-      year: payroll.year,
-      basic: payroll.basic,
-      hra: payroll.hra,
-      da: payroll.da,
-      specialAllowance: payroll.specialAllowance,
-      employerPF: payroll.employerPF,
-      tds: payroll.tds,
-      absenceDeductions: payroll.absenceDeductions,
-      totalEarnings: payroll.totalEarnings,
-      totalDeductions: payroll.totalDeductions,
-      grossSalary: payroll.grossSalary,
-      netSalary: payroll.netSalary,
-      ctc: payroll.ctc,
-    });
+    if (!payroll || !payroll.payslipUrl) {
+      return res.status(404).json({ message: "Payslip not found" });
+    }
 
-    const fullPath = path.resolve(`.${pdfPath}`);
-    res.download(fullPath);
+    const filePath = path.join(process.cwd(), payroll.payslipUrl);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "File not found" });
+    }
+
+    res.download(filePath);
 
   } catch (error) {
-    console.error("Payslip PDF error:", error);
-    res.status(500).json({ message: "Failed to generate payslip PDF" });
+    console.error("Download error:", error);
+    res.status(500).json({ message: "Failed to download payslip" });
   }
 };
