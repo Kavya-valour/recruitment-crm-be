@@ -2,7 +2,8 @@ import { generatePayslipHTML } from "./payslipTemplate.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 import { generateOfferHTML } from "./offerTemplate.js";
 const __filename = fileURLToPath(import.meta.url);
@@ -42,16 +43,11 @@ export const generatePayslip = async (data) => {
     });
 
     const browser = await puppeteer.launch({
-  headless: true,
-  args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-gpu",
-    "--no-zygote",
-    "--single-process"
-  ]
-});
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "domcontentloaded" });
@@ -90,16 +86,11 @@ export const generateOfferLetter = async (data) => {
     });
 
     const browser = await puppeteer.launch({
-  headless: true,
-  args: [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-gpu",
-    "--no-zygote",
-    "--single-process"
-  ]
-});
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+    });
 
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "domcontentloaded" });
