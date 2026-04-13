@@ -178,7 +178,13 @@ const endOfMonth = new Date(year, monthIndex + 1, 0);
     payroll.payslipUrl = pdfUrl;
 
     const savedPayroll = await payroll.save();
-    res.status(201).json(savedPayroll);
+
+    const populatedPayroll = await Payroll.findById(savedPayroll._id).populate(
+      "employeeId",
+      "name employee_id designation workLocation joining_date"
+    );
+
+    res.status(201).json(populatedPayroll);
 
   } catch (error) {
       console.error("🔥 FULL ERROR:", error);
@@ -234,16 +240,11 @@ export const generatePayslipPDF = async (req, res) => {
       return res.status(404).json({ message: "Payslip not found" });
     }
 
-    const filePath = path.join(process.cwd(), payroll.payslipUrl);
-
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: "File not found" });
-    }
-
-    res.download(filePath);
+    // ✅ Return URL instead of downloading file
+    res.json({ url: payroll.payslipUrl });
 
   } catch (error) {
     console.error("Download error:", error);
-    res.status(500).json({ message: "Failed to download payslip" });
+    res.status(500).json({ message: "Failed to fetch payslip" });
   }
 };
