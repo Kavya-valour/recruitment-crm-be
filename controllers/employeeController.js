@@ -225,3 +225,32 @@ export const exportEmployeesToExcel = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const getEmployeeByEmail = async (req, res) => {
+  try {
+    const { email, employeeId } = req.query;
+
+    let employee = null;
+
+    // Try by email first
+    if (email) {
+      employee = await Employee.findOne({
+        email: new RegExp(`^${email}$`, "i"),
+      });
+    }
+
+    // Fallback by employeeId
+    if (!employee && employeeId) {
+      employee = await Employee.findOne({ employee_id: employeeId });
+    }
+
+    if (!employee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    res.json(employee);
+  } catch (err) {
+    console.error("Lookup error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};

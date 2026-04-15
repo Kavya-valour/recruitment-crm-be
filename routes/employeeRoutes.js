@@ -3,6 +3,7 @@ import multer from "multer";
 import { protect } from "../middleware/authMiddleware.js";
 import {
   getEmployees,
+  getEmployeeByEmail,
   getEmployeeById,
   addEmployee,
   updateEmployee,
@@ -20,6 +21,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Routes
+router.get("/lookup", getEmployeeByEmail);
 router.get("/", getEmployees);
 
 router.get("/:id", getEmployeeById);
